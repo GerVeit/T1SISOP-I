@@ -25,6 +25,52 @@ void* func2(void* arg){
 
 }
 
+void fimThread(){
+
+	printf("Teste de fim de thread\n");
+	dispatcher();
+
+}
+
+void dispatcher(){
+	
+	TCB_t *aux = NULL;
+
+	if (exec != NULL)
+		aux = exec;
+
+	if (FirstFila2(&aptos) != 0)
+		printtf("Fila de aptos vazia\n");
+
+	else{
+
+		exec = GetAtIteratorFila2(&aptos);
+
+		if (exec == NULL)
+			printf("Fila de aptos vazia vazia\n");
+		else{
+
+			if (FirstFila(&aptos) == 0)
+				if (DeleteAtIteratorFila2(&aptos) == 0)
+					printf("Deletado primeiro elemento da fila de aptos\n);
+				else
+					printf("Erro ao deletar primeiro elemento da fila de aptos\n);
+
+			else
+				printf("Fila de aptos vazia\n);
+		}
+	
+	exec->state = PROCST_EXEC;
+	startTimer();
+	
+	if (aux != NULL)
+		swapcontext(&(aux->context), &(exec->context));	//realiza swap se houver uma thread executando
+	else
+		setcontext(&(exec->context);		        //realiza set se nao houver nenhuma thread executando
+	
+	
+}
+
 
 int ccreate (void *(*start) (void*), void *arg, 0){
 	
@@ -84,7 +130,7 @@ int ccreate (void *(*start) (void*), void *arg, 0){
 	
 	//Inserindo na Fila de Aptos;
 
-	if (InsertByPrio(aptos, &(novaThread) == 0)
+	if (InsertByPrio(&aptos, &(novaThread) == 0)
 		printf("Nova Thread inserida na fila de Aptos\n");
 		
 	else
