@@ -25,11 +25,12 @@ typedef struct s_TCB {
 					// 0: Criação; 1: Apto; 2: Execução; 3: Bloqueado e 4: Término
 	unsigned 	int		prio;		// prioridade da thread (higest=0; lowest=3)
 	ucontext_t 	context;	// contexto de execução da thread (SP, PC, GPRs e recursos) 
+	char		stack[SIGSTKSZ]; // pilha para o contexto da thread
 	
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
 	
-} TCB_t; 
+} Thread; 
 
 
 #endif

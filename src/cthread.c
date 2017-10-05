@@ -30,7 +30,17 @@ int ccreate (void *(*newThreadBegin) (void*), void *arg, int zero){
 
 	if (firstExec == 0){
 		
-		newThreadBegin((void *) NULL);		
+		Thread *main;
+		main = malloc(sizeof(Thread));
+		
+		getcontext(&(main->context));
+		main->context.uc_link = &(main->context);
+		main->context.uc_stack.ss_sp = main->stack;
+		main->context.uc_stack.ss_size = sizeof(main->stack);
+		makecontext(&(sec->context), (void (*)(void))func1, 0);
+		getcontext(&(main->context));
+		setcontext(&(sec->context));
+		
 
 
 	}
@@ -53,6 +63,7 @@ int main(int argc, char **argv){
 		printf("Erro na execucao para escrever oi em ingles!!\n");
 
 	tidFunc2 = ccreate(func2, (void *) NULL, 0);
+	printf("meupaiteama\n");
 	if(tidFunc2 < 0)
 		printf("Erro na execucao para escrever oi em espanhol!!\n");	
 	
