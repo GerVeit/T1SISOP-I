@@ -92,7 +92,7 @@ Ret:	Ponteiro válido, se conseguiu
 -------------------------------------------------------------------*/
 void 	*GetAtNextIteratorFila2(PFILA2 pFila);
 
-
+/////
 /*-------------------------------------------------------------------
 Função:	Retorna o conteúdo do nodo endereçado pelo iterador->ant da lista "pFila"
 Ret:	Ponteiro válido, se conseguiu

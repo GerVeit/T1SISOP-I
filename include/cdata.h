@@ -30,7 +30,7 @@ typedef struct s_TCB {
 	/* Se necessário, pode-se acresecentar campos nessa estrutura A PARTIR DAQUI! */
 	
 	
-} Thread; 
+} TCB_t; 
 
 
 #endif
