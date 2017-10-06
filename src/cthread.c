@@ -8,6 +8,7 @@
 #include "../include/cthread.h"
 
 //variaveis universales
+//sexo
 
 int firstExec = 1;
 int nroTID = 1;
