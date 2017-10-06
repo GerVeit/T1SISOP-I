@@ -9,6 +9,7 @@
 
 //variaveis universales
 
+
 int firstExec = 1;
 int nroTID = 1;
 FILA2 aptos;
