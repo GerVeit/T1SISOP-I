@@ -29,11 +29,11 @@ void* func2(void* arg){
 void fimThread(){
 
 	printf("Teste de fim de thread\n");
-	dispatcher();
+	//dispatcher();
 
 }
 
-void dispatcher(){
+/* void dispatcher(){
 	
 	TCB_t *aux = NULL;
 
@@ -41,7 +41,7 @@ void dispatcher(){
 		aux = exec;
 
 	if (FirstFila2(&aptos) != 0)
-		printtf("Fila de aptos vazia\n");
+		printf("Fila de aptos vazia\n");
 
 	else{
 
@@ -51,14 +51,14 @@ void dispatcher(){
 			printf("Fila de aptos vazia vazia\n");
 		else{
 
-			if (FirstFila(&aptos) == 0)
+			if (FirstFila2(&aptos) == 0)
 				if (DeleteAtIteratorFila2(&aptos) == 0)
-					printf("Deletado primeiro elemento da fila de aptos\n);
+					printf("Deletado primeiro elemento da fila de aptos\n");
 				else
-					printf("Erro ao deletar primeiro elemento da fila de aptos\n);
+					printf("Erro ao deletar primeiro elemento da fila de apto\n");
 
 			else
-				printf("Fila de aptos vazia\n);
+				printf("Fila de aptos vazia\n");
 		}
 	
 	exec->state = PROCST_EXEC;
@@ -67,19 +67,23 @@ void dispatcher(){
 	if (aux != NULL)
 		swapcontext(&(aux->context), &(exec->context));	//realiza swap se houver uma thread executando
 	else
-		setcontext(&(exec->context);		        //realiza set se nao houver nenhuma thread executando
+		setcontext(&(exec->context));		        //realiza set se nao houver nenhuma thread executando
 	
 	
 }
+}*/
 
 
-int ccreate (void *(*start) (void*), void *arg, 0){
+int ccreate (void *(*start) (void*), void *arg, int zero){
 	
 	//primeira execucao cria contexto da main
 
 	if( firstExec == 1){
 		TCB_t *main;
-		main = malloc(sizeof(Thread));
+		main = malloc(sizeof(TCB_t));
+
+		TCB_t *endThread;
+		endThread = malloc(sizeof(TCB_t));
 
 		getcontext(&(main->context));
 		main->context.uc_link = &(endThread->context);
@@ -88,12 +92,11 @@ int ccreate (void *(*start) (void*), void *arg, 0){
 		
 		main->tid = 0;
 		main->state = PROCST_EXEC;
-		main->prio = -1 //nao tem prioridade
+		main->prio = -1; //nao tem prioridade
 		
 		//cria contexto da thread que testa o fim de execucao de todas as threads
 
-		TCB_t *endThread;
-		endThread = malloc(sizeof(Thread));
+		
 
 		getcontext(&(endThread->context));
 		endThread->context.uc_link = &(main->context);
@@ -104,7 +107,7 @@ int ccreate (void *(*start) (void*), void *arg, 0){
 		
 		//criando fila de aptos
 
-		CreateFila2(&aptos);
+		//CreateFila2(&aptos);
 		
 		//setando variavel que indica qual thread esta executando
 
@@ -115,12 +118,15 @@ int ccreate (void *(*start) (void*), void *arg, 0){
 	//criando nova thread
 
 	TCB_t *novaThread;
-	novaThread = malloc(sizeof(Thread));
+	novaThread = malloc(sizeof(TCB_t));
+
+	TCB_t *endThread;
+	endThread = malloc(sizeof(TCB_t));
 		
 	getcontext(&(novaThread->context));
 	novaThread->context.uc_link = &(endThread->context);
-	novaThread->context.uc_stack.ss_sp = nova_Thread->stack;
-	novaThread->context.stack.ss_size = sizeof(novaThread->stack);	
+	novaThread->context.uc_stack.ss_sp = (novaThread->stack);
+	novaThread->context.uc_stack.ss_size = sizeof(novaThread->stack);	
 	makecontext(&(novaThread->context), (void (*) (void))start, 0);
 
 	novaThread->prio = 0;
@@ -131,15 +137,12 @@ int ccreate (void *(*start) (void*), void *arg, 0){
 	
 	//Inserindo na Fila de Aptos;
 
-	if (InsertByPrio(&aptos, &(novaThread) == 0)
-		printf("Nova Thread inserida na fila de Aptos\n");
-		
-	else
-		printf("Erro na insercao na fila de Aptos\n");
+	//if (InsertByPrio(&aptos, (&(novaThread) == 0))
+	//	printf("Nova Thread inserida na fila de Aptos\n");
+	//else
+	//	printf("Erro na insercao na fila de Aptos\n");
 	
 	return nroTID;
-
-
 }
 
 
@@ -147,12 +150,14 @@ int main(int argc, char **argv){
 
 	int tidFunc1 = 0, tidFunc2 = 0;	
 	
-	tidFunc1 = ccreate(func1, (void *) NULL);
+	tidFunc1 = ccreate(func1, (void *) NULL, 0);
+
 	if(tidFunc1 < 0)
 		printf("Erro na execucao para escrever oi em ingles!!\n");
 
-	tidFunc2 = ccreate(func2, (void *) NULL);
-	printf("meupaiteama\n");
+	tidFunc2 = ccreate(func2, (void *) NULL, 0);
+	printf("nmeupaiteama\n");
+
 	if(tidFunc2 < 0)
 		printf("Erro na execucao para escrever oi em espanhol!!\n");	
 	

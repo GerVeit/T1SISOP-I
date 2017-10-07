@@ -6,8 +6,8 @@
 	
 ********************************************************************/
 
-#ifndef	__SUPPORTE_H__
-#define	__SUPPORTE_H__
+#ifndef	__SUPPORT_H__
+#define	__SUPPORT_H__
 
 struct	sFilaNode2 {
 	void 	*node;			// Ponteiro para a estrutura de dados do NODO
