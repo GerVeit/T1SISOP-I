@@ -7,15 +7,8 @@
 #include "../include/cdata.h"
 #include "../include/cthread.h"
 
-int oi()
-{
-	TCB_t *thread1 = NULL;
 
-	return 0;
-
-}
-/*
-//variaveis universales
+//variaveis universais
 
 
 int firstExec = 1;
@@ -23,9 +16,15 @@ int nroTID = 1;
 int isMain = 1;
 
 FILA2 aptos;
+FILA2 bloqueados;
+FILA2 cjoinQueue;
 
-TCB_t *exec;
+TCB_t exec;
+TCB_t threadMain;
 
+ucontext_t endThread;
+
+/*
 
 //funcoes teste
 
@@ -79,31 +78,42 @@ void dispatcher(){
 	
 	
 }
-
+*/
 
 int ccreate (void *(*start) (void*), void *arg, int zero){
 	
-	//primeira execucao cria contexto da main
+	//primeira execucao cria contexto da main e inicializa filas
 
 	if(firstExec){
 
-		TCB_t *main;
-		main = malloc(sizeof(TCB_t));
+		threadMain.tid = 0;
+		threadMain.state = PROCST_EXEC;
+		exec = threadMain;
 
-		main->tid = 0;
-		main->state = PROCST_EXEC;
-
-		//criando fila de aptos
-
-		CreateFila2(&aptos);
+		getcontext(&threadMain.context);		
 		
-		//setando variavel que indica qual thread esta executando
+		printf("Sou a main\n");
 
-		exec = main;
+		//comeca a contar o tempo que main esta com CPU 
+		startTimer();
+
+		//criando fila de aptos, bloqueados e das threads que esperam por cjoin
+		if(CreateFila2(&aptos) != 0){
+			printf("Nao criou a fila de aptos\n");
+			return -1;
+		}
 		
-		isMain = 1;	//variavel que indica que a main esta executando		
+		if(CreateFila2(&bloqueados) != 0){
+			printf("Nao criou a fila de bloqueados\n");
+			return -1;
+		}
 		
-		firstExec = 0;	//variavel que indica o fim da primeira execucao
+		if(CreateFila2(&cjoinQueue) != 0){
+			printf("Nao criou a fila do cjoin\n");
+			return -1;
+		}	
+		
+		firstExec = 0;	//variavel que indica que nao eh mais a primeira execucao
 	}
 	
 	//criando nova thread
@@ -113,49 +123,30 @@ int ccreate (void *(*start) (void*), void *arg, int zero){
 		
 	getcontext(&(novaThread->context));
 
-	novaThread->context.uc_link = &(endThread->context);
-	novaThread->context.uc_stack.ss_sp = (novaThread->stack);
+	novaThread->context.uc_link = &endThread;
+	novaThread->context.uc_stack.ss_sp = novaThread->stack;
 	novaThread->context.uc_stack.ss_size = sizeof(novaThread->stack);
 	
-	makecontext(&(novaThread->context), (void (*) (void))start, 0);
+	makecontext(&(novaThread->context), (void (*) (void))start, 1, arg);
 
-	novaThread->prio = 0;
+	novaThread->prio = zero;
 	novaThread->tid = nroTID;
 	novaThread->state = PROCST_APTO;
 
-	nroTID++;
+	
 	
 	//Inserindo na Fila de Aptos;
 
-	if (InsertByPrio(&aptos, (&(novaThread) == 0))
+	if (InsertByPrio(&aptos, &novaThread) == 0)
 		printf("Nova Thread inserida na fila de Aptos\n");
-	else
+	else{
 		printf("Erro na insercao na fila de Aptos\n");
+		return -1;
+	}
 
-	dispatcher();
+	nroTID++;
 	
-	return nroTID;
+	return novaThread->tid;
 
 }
 
-
-int main(int argc, char **argv){
-
-	int tidFunc1 = 0, tidFunc2 = 0;	
-	
-	tidFunc1 = ccreate(func1, (void *) NULL, 0);
-
-	if(tidFunc1 < 0)
-		printf("Erro na execucao para escrever oi em ingles!!\n");
-
-	tidFunc2 = ccreate(func2, (void *) NULL, 0);
-	//printf("nmeupaiteama\n");
-
-	if(tidFunc2 < 0)
-		printf("Erro na execucao para escrever oi em espanhol!!\n");	
-	
-
-
-	return 0;
-}
-*/

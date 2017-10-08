@@ -16,7 +16,7 @@
 /*--------------------------------------------------------------------
 Função: Insere um nodo na lista indicada, segundo o campo "prio" do TCB_t
 	A fila deve estar ordenada (ou ter sido construída usado apenas essa funcao)
-	O primeiro elemento da lista (first) é aquele com menor vamor de "prio"
+	O primeiro elemento da lista (first) é aquele com menor valor de "prio"
 Entra:	pfila -> objeto FILA2
 	pnodo -> objeto a ser colocado na FILA2
 Ret:	==0, se conseguiu
