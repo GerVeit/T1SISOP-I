@@ -8,26 +8,34 @@
 #  1. Cuidado com a regra "clean" para não apagar o "support.o"
 #
 # OBSERVAR que as variáveis de ambiente consideram que o Makefile está no diretótio "cthread"
-# 
+# cdata.o: $(SRC_DIR)cthread.c
+#	$(CC) $(CFLAGS) $(SRC_DIR)cthread.c -Wall -o $(BIN_DIR)cthread.o
+# $(BIN_DIR)cdata.o 
+#TST_DIR=./testes/
 
 CC=gcc
-LIB_DIR=./lib
-INC_DIR=./include
-BIN_DIR=./bin
-SRC_DIR=./src
+LIB_DIR=./lib/
+INC_DIR=./include/
+BIN_DIR=./bin/
+SRC_DIR=./src/
+CFLAGS=-m32 -c
 
-all: regra1 regra2 regran
+all: directory lib
 
-regra1: #dependências para a regra1
-	$(CC) -o $(BIN_DIR)regra1 $(SRC_DIR)regra1.c -Wall
+directory:
+	mkdir lib -p -v
 
-regra2: #dependências para a regra2
-	$(CC) -o $(BIN_DIR)regra2 $(SRC_DIR)regra2.c -Wall
+lib: clean cthread.o insert.o
+	ar crs $(LIB_DIR)libcthread.a $(BIN_DIR)support.o $(BIN_DIR)cthread.o $(BIN_DIR)insert.o
 
-regran: #dependências para a regran
-	$(CC) -o $(BIN_DIR)regran $(SRC_DIR)regran.c -Wall
+cthread.o: $(SRC_DIR)cthread.c $(INC_DIR)cdata.h
+	$(CC) $(CFLAGS) $(SRC_DIR)cthread.c -Wall -o $(BIN_DIR)cthread.o
+
+insert.o: $(SRC_DIR)insert.c $(INC_DIR)cdata.h
+	$(CC) $(CFLAGS) $(SRC_DIR)insert.c -Wall -o $(BIN_DIR)insert.o
+
+# regran: #dependências para a regran
+#  	$(CC) -o $(BIN_DIR)regran $(SRC_DIR)regran.c -Wall
 
 clean:
-	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
-
-
+	find $(BIN_DIR) $(LIB_DIR) -type f ! -name 'support.o' ! -name '*.c' ! -name 'Makefile' -delete
