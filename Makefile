@@ -35,4 +35,4 @@ insert.o: $(SRC_DIR)insert.c $(INC_DIR)cdata.h $(INC_DIR)cthread.h $(INC_DIR)sup
 	$(CC) $(CFLAGS) $(SRC_DIR)insert.c -Wall -o $(BIN_DIR)insert.o
 
 clean:
-	find $(BIN_DIR) $(LIB_DIR) -type f ! -name 'support.o' ! -name '*.c' ! -name 'Makefile' -delete
+	find $(BIN_DIR) $(LIB_DIR) -type f ! -name 'support.o' -delete
