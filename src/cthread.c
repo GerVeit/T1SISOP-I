@@ -344,8 +344,11 @@ int cyield(){
 
 int cidentify(char *name, int size){
 
-	if(puts(name))
-		return 0;
+	if(size>0)
+		if(puts(name))
+			return 0;
+		else
+			return -1;
 	else
 		return -1;
 
