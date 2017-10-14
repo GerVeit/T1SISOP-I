@@ -4,7 +4,7 @@ LIB_DIR=../lib
 FLAGS=-m32 -o
 LIB=-lcthread
 
-all: ccreate cjoin cyield
+all: ccreate cjoin cyield cidentify
 
 ccreate:
 	$(CC) $(FLAGS) ccreate ccreate.c -L$(LIB_DIR) $(LIB)
@@ -14,6 +14,9 @@ cjoin:
 
 cyield:
 	$(CC) $(FLAGS) cyield cyield.c -L$(LIB_DIR) $(LIB)
+
+cidentify:
+	$(CC) $(FLAGS) cidentify cidentify.c -L$(LIB_DIR) $(LIB)
 
 clean:
 	find -type f ! -name '*.c' ! -name 'Makefile' -delete

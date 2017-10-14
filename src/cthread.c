@@ -336,3 +336,17 @@ int cyield(){
 		return -1;
 	
 }
+
+//Funcao de identificacao
+//retorna 0 se SUCESSO, -1 se ERRO
+/*OBS*** DEIXAR ESSA FUNCAO COMO ULTIMA DO ARQUIVO cthread.c!!!
+*/
+
+int cidentify(char *name, int size){
+
+	if(puts(name))
+		return 0;
+	else
+		return -1;
+
+}
