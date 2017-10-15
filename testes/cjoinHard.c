@@ -1,6 +1,7 @@
 /**
-** Teste da função ccreate
+** Teste da função cjoin
 **/
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,25 +9,32 @@
 #include "../include/support.h"
 #include "../include/cthread.h"
 
+int id0, id1, id2;
+
 void* func0() {
-	printf("Eu sou a thread ID0 \n");
+	
+	int ret;
+	
+	printf("Eu sou a thread ID1 aguardando o termino de %d\n", id1);
+	ret = cjoin(id1);
+	if (ret == 0)
+		printf("Join executado com sucesso da thread 1\n");
 
 }
 
 void* func1() {
-	printf("Eu sou a thread ID1 \n");
+	printf("Eu sou a thread ID2 \n");
 
 }
 
 void* func2() {
-	printf("Eu sou a thread ID2 \n");
+	printf("Eu sou a thread ID3 \n");
 
 }
 
 int main(int argc, char *argv[]) {
 	
-	int id0, id1, id2;
-	
+	int retJoin1;
 
 	id0 = ccreate(func0, (void *) NULL, 0);
 	printf("Eu sou a thread de TID: %d\n", id0);
@@ -37,12 +45,24 @@ int main(int argc, char *argv[]) {
 	id2 = ccreate(func2, (void *) NULL, 0);
 	printf("Eu sou a thread de TID: %d\n", id2);
 	
-
 	printf("Eu sou a main após a criação de threads\n");
+	printf("Eu sou a main aguardando o termino de %d\n", id2);
+
+	retJoin1 = cjoin(id2);
+	if (retJoin1 == 0)
+		printf("Join executado com sucesso\n");
+
+	printf("Eu sou a main após todos os cjoins terem sido efetuados\n");
 	
-	if(cyield() == 0)
-		printf("cyield realizada com sucesso\n");
-	printf("Sou a main após cyield\n");
 
 	return 0;
 }
+	
+
+	
+
+	
+	
+	
+	
+

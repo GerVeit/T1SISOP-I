@@ -4,16 +4,22 @@ LIB_DIR=../lib
 FLAGS=-m32 -o
 LIB=-lcthread
 
-all: ccreate cjoin cyield cidentify
+all: ccreate cjoinHard cjoinTeta cyieldHard cyieldTeta cidentify
 
 ccreate:
 	$(CC) $(FLAGS) ccreate ccreate.c -L$(LIB_DIR) $(LIB)
 
-cjoin:
-	$(CC) $(FLAGS) cjoin cjoin.c -L$(LIB_DIR) $(LIB)
+cjoinHard:
+	$(CC) $(FLAGS) cjoinHard cjoinHard.c -L$(LIB_DIR) $(LIB)
 
-cyield:
-	$(CC) $(FLAGS) cyield cyield.c -L$(LIB_DIR) $(LIB)
+cjoinTeta:
+	$(CC) $(FLAGS) cjoinTeta cjoinTeta.c -L$(LIB_DIR) $(LIB)
+
+cyieldHard:
+	$(CC) $(FLAGS) cyieldHard cyieldHard.c -L$(LIB_DIR) $(LIB)
+
+cyieldTeta:
+	$(CC) $(FLAGS) cyieldTeta cyieldTeta.c -L$(LIB_DIR) $(LIB)
 
 cidentify:
 	$(CC) $(FLAGS) cidentify cidentify.c -L$(LIB_DIR) $(LIB)

@@ -17,7 +17,9 @@
 
 int firstExec = 1;
 int nroTID = 1;
-int isMain = 0;
+int retThread = 0;
+int startExec = 0;
+int stopExec = 0;
 
 FILA2 aptos;
 FILA2 bloqueados;
@@ -29,27 +31,73 @@ TCB_t *threadMain;
 ucontext_t endThread, dispatch_ctx;
 
 
-void dispatch(){
-	
-	//seta iterador para a primeira posicao da fila de aptos inicia proxima thread
+//funcao que conta o tempo de execucao de cada thread e seta sua prioridade
+//partindo do pressuposto de que exec sempre aponta para thread que possui a CPU
+//retorna 1 caso SUCESSO
+
+int setPrio(){
+
+	if (exec->startTimer == 1){
+		startTimer();
+		exec->startTimer = 0;
+		return 1;
+	}
+
+	else{
+		exec->prio = stopTimer();
+		printf("Thread de id: %d executou por %d ciclos de clock\n", exec->tid, exec->prio);
+		return 1;
+	}
+}
+
+//seta iterador para a primeira posicao da fila de aptos para indicar a thread a receber a CPU 
+
+TCB_t *setNewExec(){
 
 	if (FirstFila2(&aptos) == 0){
 
 		TCB_t *unlockedThread = NULL;
 		if(GetAtIteratorFila2(&aptos) != NULL){
 			unlockedThread = (TCB_t *) GetAtIteratorFila2(&aptos);
-			exec = unlockedThread;
-			
-			setcontext(&exec->context);			
+			exec = unlockedThread;			
 		}
-		else
-			printf("Nao conseguiu pegar o iterador em dispatch()\n");
+		else{
+			printf("Nao conseguiu pegar o iterador em setNewExec()\n");
+			exec = NULL;
+		}
 	}
 
 	else
-		printf("Nao conseguiu setar na fila em dispatch()\n");
+		printf("Nao conseguiu setar na fila em setNewExec()\n");
 
+	return exec;
 }
+
+//inicia proxima thread da fila de aptos
+
+void dispatch(){	
+	
+	exec = setNewExec();
+	if(exec != NULL){
+		//COMECA A CONTAR O TEMPO DA NOVA THREAD QUE VAI EXECUTAR
+		exec->startTimer = 1;
+		if(setPrio() != 1)
+			printf("Nao conseguiu setar a prioridade em dispatch!\n");
+	
+		if(FirstFila2(&aptos) == 0)
+			if(DeleteAtIteratorFila2(&aptos) == 0)
+
+			setcontext(&exec->context);
+		
+			else
+				printf("Nao conseguiu deletar a thread que vai executar da fila de aptos em dispatch\n");
+		else
+			printf("Nao conseguiu setar a thread que vai ser deletada da fila de aptos em dispatch\n");
+	}
+	else
+		printf("Nao tem mais threads para serem executadas em dispatch\n");		
+}
+
 
 //funcao que checa se nao ha mais de uma thread aguardando pelo mesmo tid
 //caso positivo retorna 0 (Erro); caso negativo, 1 (Sucesso)
@@ -65,10 +113,12 @@ int checkJoin(int tid){
 				return 0;
 
 			else{
-				if(NextFila2(&bloqueados) != 0)
-					printf("Nao conseguiu pegar o proximo elemnento em verifyCjoin()");
+				if(NextFila2(&bloqueados) != 0){
+					printf("Nao conseguiu pegar o proximo elemnento em checkJoin(), pode ser que nao haja mais\n");
+					return 0;
+				}
 				else
-					printf("Pegou o proximo elemento em verifyJoin()\n");
+					printf("Pegou o proximo elemento em checkJoin()\n");
 			}	
 		}
 
@@ -91,8 +141,6 @@ void changeState(PFILA2 queue, TCB_t *threadGoingToQueue){
 			printf("Thread de tid %d inserida na fila de bloqueados/aptos\n", threadGoingToQueue->tid);
 		else
 			printf("Nao conseguiu inserir em fila na changeState()\n");
-
-		exec = NULL;
 	}
 
 }
@@ -110,7 +158,12 @@ int verifyCjoin(int tid, FILA2 queue){
 		if(threadInQueue->tid == tid){
 			exec->tidCjoin = tid;	//indica o tid pela qual a thread que esta executando devera esperar
 			exec->state = PROCST_BLOQ;
-			changeState(&bloqueados, exec);		
+			
+			//**THREAD QUE EXECUTAVA VAI PARA BLOQUEADO 
+			//**CHAMA FUNCAO QUE SETA PRIORIDADE
+			if(setPrio() != 1)
+				printf("Nao conseguiu setar a prioridade em verifyCjoin!\n");
+						
 			return 1;
 		}
 
@@ -153,30 +206,29 @@ void lookForTidinBlockedQueue(){
 	}
 
 	else
-		printf("Deu merda na hora de setar na fila de bloqueados em lookForTidinBlockedQueue()\n");
+		printf("Nao tem threads na fila de bloqueados em lookForTidinBlockedQueue() ou deu erro\n");
 
 
 }
 
 
 void fimThread(){
-	
-	TCB_t *aux;
-	
-	if(FirstFila2(&aptos) == 0)
-		if(DeleteAtIteratorFila2(&aptos)==0){
-			
-			lookForTidinBlockedQueue(); //procura na fila de bloqueados alguma thread que esteja esperando pela que acabou
-	
-			//desaloca estrutura da thread para liberar memoria
-			aux = exec;
-			exec = NULL;
-			free(aux);
 
-			dispatch();
-		}
-		else
-			printf("Deu merda na hora de deletar no fimThread()!\n");
+	//TERMINA DE CONTAR O TEMPO QUE UMA THREAD EXECUTOU E SETA SUA PRIORIDADE
+	if(setPrio() != 1)
+		printf("Nao conseguiu setar a prioridade em fimThread!\n");
+	printf("thread encerrando = %d\n", exec->tid);
+	
+	if(FirstFila2(&aptos) == 0){
+		
+		lookForTidinBlockedQueue(); //procura na fila de bloqueados alguma thread que esteja esperando pela que acabou
+
+		//desaloca estrutura da thread para liberar memoria
+		free(exec);
+		exec = NULL;
+
+		dispatch();
+	}	
 
 	else
 		printf("Deu merda na hora de setar o First Fila no fimThread()!\n");
@@ -189,10 +241,15 @@ void initMain(){
 	threadMain->tid = 0;	
 	threadMain->prio = 0;	
 	threadMain->state = PROCST_EXEC;	
-	threadMain->tidCjoin = defaultTID; 
+	threadMain->tidCjoin = defaultTID;
+	threadMain->startTimer = 1; 
 	
 	getcontext(&threadMain->context);
 	exec = threadMain;
+
+	//COMECA A CONTAR O TEMPO DE EXECUCAO DA MAIN PARA SETAR SUA PRIORIDADE	
+	if(setPrio() != 1)
+		printf("Nao conseguiu setar a prioridade em initMain!\n");
 
 }
 
@@ -257,6 +314,7 @@ int ccreate (void *(*start) (void*), void *arg, int zero){
 	novaThread->tid = nroTID;
 	novaThread->state = PROCST_APTO;
 	novaThread->tidCjoin = defaultTID;
+	novaThread->startTimer = zero;
 		
 	getcontext(&(novaThread->context));
 
@@ -303,10 +361,13 @@ int cjoin(int tid){
 		flagVerify = flagVerify && checkJoin(tid);
 		printf("flagVerify = %d\n", flagVerify);
 		
-		swapcontext(&threadMain->context, &dispatch_ctx);
-		
-		if(flagVerify == 0)
+		if(flagVerify == 0){
+
+			changeState(&bloqueados, exec);
+			swapcontext(&exec->context, &dispatch_ctx);
+
 			return flagVerify;
+		}
 		else
 			return -1;
 	}
@@ -325,15 +386,24 @@ int cjoin(int tid){
 int cyield(){
 	
 	exec->state = PROCST_APTO;
-	changeState(&aptos, exec);
 	
-	swapcontext(&threadMain->context, &dispatch_ctx);
-	isMain = 1;
+	//seta a prioridade antes de entrar na fila de aptos
+	if(setPrio() != 1)
+		printf("Nao conseguiu setar a prioridade em dispatch!\n");
 
-	if(isMain)
+	changeState(&aptos, exec);
+	swapcontext(&exec->context, &dispatch_ctx);
+	
+	retThread = 1;
+
+	if(retThread){
+		retThread = 0;
 		return 0;
-	else
+	}
+	else{
+		retThread = 0;
 		return -1;
+	}
 	
 }
 
