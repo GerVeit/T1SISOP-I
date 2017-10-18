@@ -423,3 +423,55 @@ int cidentify(char *name, int size){
 		return -1;
 
 }
+
+int cwait(csem_t *sem){
+	
+	if(sem->count == 0){
+     		changeState(&bloqueados, exec);
+			   sem->count = sem->count -1;
+			   return 0;
+	}
+	else 
+		return -1;
+}
+
+
+int csignal(csem_t *sem){
+   	if(sem->count != 0){
+			  sem->count  = sem->count +1;
+			  return 0;
+	}
+   	else{
+			  changeState(&aptos, exec);
+			  return 0;
+	}		  
+}
+
+
+int csem_init(csem_t *sem, int count){
+	sem->count = 1;
+	return 0;
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
