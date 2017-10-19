@@ -201,7 +201,7 @@ void lookForTidinBlockedQueue(){
 					return;
 				}
 			}
-		if(NextFila2(&bloqueados) != 0)
+			if(NextFila2(&bloqueados) != 0)
 				printf("Nao conseguiu pegar o proximo elemnento em lookForTidinBlockedQueue()\n");	
 			
 		}
@@ -430,28 +430,42 @@ int cwait(csem_t *sem){
 	printf("Eu sou o cwait\n");
 	if(sem->count <= 0){
 		exec->state = PROCST_BLOQ;
-		changeState(&sem->fila, exec);	
+		if(AppendFila2(sem->fila, (void *) exec) != 0 || AppendFila2(&bloqueados, (void *) exec) != 0)
+			return -1;
 		swapcontext(&exec->context, &dispatch_ctx);
 	else{ 
 		sem->count--;
 		printf("cwait decrementou\n")
 	}
-	
 	return 0;
 	}
 }
 
 
 int csignal(csem_t *sem){
-   	if(sem->count != 0){
-			  sem->count  = sem->count + 1;
-			  return 0;
+
+	sem->count++;
+	
+	if(FirstFila2(sem->fila) == 0){
+
+    	TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
+    	t_des->state = APTO;
+    	changeState(&filaAptos, t_des);
+		//deleteFromBlockedQueue(&filaBloqueados, unlockedThread->tid);
+		while(GetAtIteratorFila2(&bloqueados) != NULL){
+			if (FirstFila2(bloqueados) == 0){
+
+				TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(bloqueados);
+				if(threadInQueue->tid == t_des->tid){
+					DeleteAtIteratorFila2(bloqueados);
+				}
+				if(NextFila2(bloqueados) == 0) 
+			}
+
+		}
+    	DeleteAtIteratorFila2(sem->fila);
 	}
-   	else{
-			exec->state = PROCST_APTO;  
-			changeState(&aptos, exec);
-			return 0;
-	}		  
+	return 0;		  
 }
 
 
