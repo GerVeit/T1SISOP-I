@@ -188,6 +188,7 @@ void lookForTidinBlockedQueue(){
 			if (threadInQueue->tidCjoin == exec->tid){
 
 				threadInQueue->state = PROCST_APTO;
+				threadInQueue->tidCjoin = defaultTID;
 				changeState(&aptos, threadInQueue);			//tira thread de bloqueado e coloca em aptos
 
 				if(DeleteAtIteratorFila2(&bloqueados) == 0){		//exclui thread da fila de bloqueados
@@ -425,53 +426,39 @@ int cidentify(char *name, int size){
 }
 
 int cwait(csem_t *sem){
-	
-	if(sem->count == 0){
-     		changeState(&bloqueados, exec);
-			   sem->count = sem->count -1;
-			   return 0;
+	printf("Eu sou o cwait\n");
+	if(sem->count <= 0){
+		exec->state = PROCST_BLOQ;
+		changeState(&sem->fila, exec);	
+		swapcontext(&exec->context, &dispatch_ctx);
+	else{ 
+		sem->count--;
+		printf("cwait decrementou\n")
 	}
-	else 
-		return -1;
+	
+	return 0;
+	}
 }
 
 
 int csignal(csem_t *sem){
    	if(sem->count != 0){
-			  sem->count  = sem->count +1;
+			  sem->count  = sem->count + 1;
 			  return 0;
 	}
    	else{
-			  changeState(&aptos, exec);
-			  return 0;
+			exec->state = PROCST_APTO;  
+			changeState(&aptos, exec);
+			return 0;
 	}		  
 }
 
 
 int csem_init(csem_t *sem, int count){
-	sem->count = 1;
+
+	sem->count = count;
+	sem->fila  = (FILA2 *)malloc(sizeof(FILA2));
+	CreateFila2(sem->fila);
 	return 0;
+
 }
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
