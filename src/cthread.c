@@ -433,51 +433,62 @@ int cwait(csem_t *sem){
 		if(AppendFila2(sem->fila, (void *) exec) != 0 || AppendFila2(&bloqueados, (void *) exec) != 0)
 			return -1;
 		swapcontext(&exec->context, &dispatch_ctx);
+	}
 	else{ 
 		sem->count--;
-		printf("cwait decrementou\n")
+		printf("cwait decrementou\n");
 	}
 	return 0;
-	}
+	
 }
 
 
 int csignal(csem_t *sem){
 
+
+	//printf("Eu sou o csignal\n");
 	sem->count++;
+	//printf("csignal incrementou\n");
 	
-	if(FirstFila2(sem->fila) == 0){
-    	TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
-    	t_des->state = APTO;
-		changeState(&filaAptos, t_des);
-		if(FirstFila2(bloqueados) != 0){
-			return -1;
-		}
-		while(GetAtIteratorFila2(&bloqueados) != NULL){
-				TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(bloqueados);
-				if(threadInQueue->tid == t_des->tid){
-					DeleteAtIteratorFila2(bloqueados);
-				}
-				if(NextFila2(bloqueados) != 0){
-					return -1;
-				} 
-			else
+
+	if(sem->fila){
+		if(FirstFila2(sem->fila) == 0){
+			printf("Pegou o primeiro da fila do semaforo\n");
+			TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
+			t_des->state = PROCST_APTO;
+			AppendFila2(&aptos, (void *) t_des);
+			printf("colocou a thread da fila de blk do semaforo em aptos\n");
+			if(FirstFila2(&bloqueados) != 0){
 				return -1;
-		}
-    	if(DeleteAtIteratorFila2(sem->fila) != 0){
-			return -1;
+			}
+			while(GetAtIteratorFila2(&bloqueados) != NULL){
+					printf("chegou no while da fila de bloqueados para deletar\n");
+					TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(&bloqueados);
+					if(threadInQueue->tid == t_des->tid){
+						DeleteAtIteratorFila2(&bloqueados);
+						printf("deletou da fila de bloqueados\n");
+					}
+					if(NextFila2(&bloqueados) != 0){
+						return -1;
+					}
+					printf("Setou pro proximo da fila\n"); 
+			}
+			if(DeleteAtIteratorFila2(sem->fila) != 0){
+				return -1;
+			}
 		}
 	}
-	else{
-		free(sem->fila);
-		sem->fila = NULL;
-	}
+	//else{
+	//	free(sem->fila);
+	//	sem->fila = NULL;
+	//}
 	return 0;		  
 }
 
 
 int csem_init(csem_t *sem, int count){
 
+	//int var_teste;
 	sem->count = count;
 	sem->fila  = (FILA2 *)malloc(sizeof(FILA2));
 	CreateFila2(sem->fila);
