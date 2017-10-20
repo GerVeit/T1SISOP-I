@@ -447,23 +447,30 @@ int csignal(csem_t *sem){
 	sem->count++;
 	
 	if(FirstFila2(sem->fila) == 0){
-
     	TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
     	t_des->state = APTO;
-    	changeState(&filaAptos, t_des);
-		//deleteFromBlockedQueue(&filaBloqueados, unlockedThread->tid);
+		changeState(&filaAptos, t_des);
+		if(FirstFila2(bloqueados) != 0){
+			return -1;
+		}
 		while(GetAtIteratorFila2(&bloqueados) != NULL){
-			if (FirstFila2(bloqueados) == 0){
-
 				TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(bloqueados);
 				if(threadInQueue->tid == t_des->tid){
 					DeleteAtIteratorFila2(bloqueados);
 				}
-				if(NextFila2(bloqueados) == 0) 
-			}
-
+				if(NextFila2(bloqueados) != 0){
+					return -1;
+				} 
+			else
+				return -1;
 		}
-    	DeleteAtIteratorFila2(sem->fila);
+    	if(DeleteAtIteratorFila2(sem->fila) != 0){
+			return -1;
+		}
+	}
+	else{
+		free(sem->fila);
+		sem->fila = NULL;
 	}
 	return 0;		  
 }
