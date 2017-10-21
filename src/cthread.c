@@ -13,6 +13,7 @@
 
 
 //variaveis universais
+//geronimo pidtols
 
 
 int firstExec = 1;
@@ -200,7 +201,7 @@ void lookForTidinBlockedQueue(){
 					return;
 				}
 			}
-		if(NextFila2(&bloqueados) != 0)
+			if(NextFila2(&bloqueados) != 0)
 				printf("Nao conseguiu pegar o proximo elemnento em lookForTidinBlockedQueue()\n");	
 			
 		}
@@ -227,6 +228,7 @@ void fimThread(){
 	exec = NULL;
 
 	dispatch();
+
 }
 
 void initMain(){
@@ -402,6 +404,77 @@ int cyield(){
 	
 }
 
+int csem_init(csem_t *sem, int count){
+
+	//int var_teste;
+	sem->count = count;
+	sem->fila  = (FILA2 *)malloc(sizeof(FILA2));
+	CreateFila2(sem->fila);
+	return 0;
+
+}
+
+int cwait(csem_t *sem){
+	printf("Eu sou o cwait\n");
+	if(sem->count <= 0){
+		exec->state = PROCST_BLOQ;
+		if(AppendFila2(sem->fila, (void *) exec) != 0 || AppendFila2(&bloqueados, (void *) exec) != 0)
+			return -1;
+		swapcontext(&exec->context, &dispatch_ctx);
+	}
+	else{ 
+		sem->count--;
+		printf("cwait decrementou\n");
+	}
+	return 0;
+	
+}
+
+
+int csignal(csem_t *sem){
+
+	//printf("Eu sou o csignal\n");
+	sem->count++;
+	//printf("csignal incrementou\n");
+
+	if(FirstFila2(sem->fila) == 0){
+		printf("Pegou o primeiro da fila do semaforo\n");
+		TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
+		t_des->state = PROCST_APTO;
+		printf("fudeo 0\n");
+		AppendFila2(&aptos, (void *) t_des);
+		printf("colocou a thread da fila de blk do semaforo em aptos\n");
+		if(FirstFila2(&bloqueados) != 0){
+			return -1;
+		}
+		while(GetAtIteratorFila2(&bloqueados) != NULL){
+			printf("chegou no while da fila de bloqueados para deletar\n");
+			TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(&bloqueados);
+			if(threadInQueue->tid == t_des->tid){
+				DeleteAtIteratorFila2(&bloqueados);
+				printf("deletou da fila de bloqueados\n");
+			}
+			if(NextFila2(&bloqueados) != 0){
+				return -1;
+			}
+			printf("Setou pro proximo da fila\n"); 
+		}
+		if(DeleteAtIteratorFila2(sem->fila) != 0){
+			return -1;
+		}
+	}
+	
+	//printf("pulou o if do csignal\n");
+	else{
+		printf("executou o else do csignal\n");
+		free(sem->fila);
+		sem->fila = NULL;
+	}
+	return 0;		  
+}
+
+
+
 //Funcao de identificacao
 //retorna 0 se SUCESSO, -1 se ERRO
 /*OBS*** DEIXAR ESSA FUNCAO COMO ULTIMA DO ARQUIVO cthread.c!!!
@@ -418,3 +491,7 @@ int cidentify(char *name, int size){
 		return -1;
 
 }
+
+
+
+
