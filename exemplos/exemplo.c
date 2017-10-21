@@ -22,7 +22,7 @@ void* func1(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-
+	
 	int	id0, id1;
 	int i;
 

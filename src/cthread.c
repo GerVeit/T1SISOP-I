@@ -188,6 +188,7 @@ void lookForTidinBlockedQueue(){
 			if (threadInQueue->tidCjoin == exec->tid){
 
 				threadInQueue->state = PROCST_APTO;
+				threadInQueue->tidCjoin = defaultTID;
 				changeState(&aptos, threadInQueue);			//tira thread de bloqueado e coloca em aptos
 
 				if(DeleteAtIteratorFila2(&bloqueados) == 0){		//exclui thread da fila de bloqueados
@@ -218,20 +219,14 @@ void fimThread(){
 	if(setPrio() != 1)
 		printf("Nao conseguiu setar a prioridade em fimThread!\n");
 	printf("thread encerrando = %d\n", exec->tid);
-	
-	if(FirstFila2(&aptos) == 0){
-		
-		lookForTidinBlockedQueue(); //procura na fila de bloqueados alguma thread que esteja esperando pela que acabou
+			
+	lookForTidinBlockedQueue(); //procura na fila de bloqueados alguma thread que esteja esperando pela que acabou
 
-		//desaloca estrutura da thread para liberar memoria
-		free(exec);
-		exec = NULL;
+	//desaloca estrutura da thread para liberar memoria
+	free(exec);
+	exec = NULL;
 
-		dispatch();
-	}	
-
-	else
-		printf("Deu merda na hora de setar o First Fila no fimThread()!\n");
+	dispatch();
 }
 
 void initMain(){
