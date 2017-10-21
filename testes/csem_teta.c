@@ -48,6 +48,7 @@ void* customer(void* arg)
 {   
    while(time(NULL) < end_time) {
       cwait(&mutex);
+      //printf("fdp do cwait do mutex\n");
       if (waiting < CHAIRS) {
          waiting = waiting + 1;
          printf(" ---> Cliente chegando. Há %d clientes esperando.\n", waiting);
@@ -57,6 +58,7 @@ void* customer(void* arg)
       } else {
         printf("  ***Cliente indo embora. Não há mais cadeiras.\n");
         csignal(&mutex);
+        //printf("fdp do csignal do mutex\n");
       }
       sleepao();
     }
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
 {
     int tidBarber, tidCustomer;
 
-    end_time=time(NULL)+1;  /*Barbearia fica aberta 120 s */
+    end_time=time(NULL)+10;  /*Barbearia fica aberta 120 s */
     srand((unsigned)time(NULL));
 
     csem_init(&customers, 0);

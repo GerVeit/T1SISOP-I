@@ -221,7 +221,7 @@ void fimThread(){
 		printf("Nao conseguiu setar a prioridade em fimThread!\n");
 	printf("thread encerrando = %d\n", exec->tid);
 	
-	if(FirstFila2(&aptos) == 0){
+	//if(FirstFila2(&aptos) == 0){
 		
 		lookForTidinBlockedQueue(); //procura na fila de bloqueados alguma thread que esteja esperando pela que acabou
 
@@ -230,10 +230,10 @@ void fimThread(){
 		exec = NULL;
 
 		dispatch();
-	}	
+	//}	
 
-	else
-		printf("Deu merda na hora de setar o First Fila no fimThread()!\n");
+	//else
+	//	printf("Deu merda na hora de setar o First Fila no fimThread()!\n");
 }
 
 void initMain(){
@@ -445,43 +445,43 @@ int cwait(csem_t *sem){
 
 int csignal(csem_t *sem){
 
-
 	//printf("Eu sou o csignal\n");
 	sem->count++;
 	//printf("csignal incrementou\n");
-	
 
-	if(sem->fila){
-		if(FirstFila2(sem->fila) == 0){
-			printf("Pegou o primeiro da fila do semaforo\n");
-			TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
-			t_des->state = PROCST_APTO;
-			AppendFila2(&aptos, (void *) t_des);
-			printf("colocou a thread da fila de blk do semaforo em aptos\n");
-			if(FirstFila2(&bloqueados) != 0){
+	if(FirstFila2(sem->fila) == 0){
+		printf("Pegou o primeiro da fila do semaforo\n");
+		TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
+		t_des->state = PROCST_APTO;
+		printf("fudeo 0\n");
+		AppendFila2(&aptos, (void *) t_des);
+		printf("colocou a thread da fila de blk do semaforo em aptos\n");
+		if(FirstFila2(&bloqueados) != 0){
+			return -1;
+		}
+		while(GetAtIteratorFila2(&bloqueados) != NULL){
+			printf("chegou no while da fila de bloqueados para deletar\n");
+			TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(&bloqueados);
+			if(threadInQueue->tid == t_des->tid){
+				DeleteAtIteratorFila2(&bloqueados);
+				printf("deletou da fila de bloqueados\n");
+			}
+			if(NextFila2(&bloqueados) != 0){
 				return -1;
 			}
-			while(GetAtIteratorFila2(&bloqueados) != NULL){
-					printf("chegou no while da fila de bloqueados para deletar\n");
-					TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(&bloqueados);
-					if(threadInQueue->tid == t_des->tid){
-						DeleteAtIteratorFila2(&bloqueados);
-						printf("deletou da fila de bloqueados\n");
-					}
-					if(NextFila2(&bloqueados) != 0){
-						return -1;
-					}
-					printf("Setou pro proximo da fila\n"); 
-			}
-			if(DeleteAtIteratorFila2(sem->fila) != 0){
-				return -1;
-			}
+			printf("Setou pro proximo da fila\n"); 
+		}
+		if(DeleteAtIteratorFila2(sem->fila) != 0){
+			return -1;
 		}
 	}
-	//else{
-	//	free(sem->fila);
-	//	sem->fila = NULL;
-	//}
+	
+	//printf("pulou o if do csignal\n");
+	else{
+		printf("executou o else do csignal\n");
+		free(sem->fila);
+		sem->fila = NULL;
+	}
 	return 0;		  
 }
 
