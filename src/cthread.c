@@ -86,9 +86,8 @@ void dispatch(){
 			printf("Nao conseguiu setar a prioridade em dispatch!\n");
 	
 		if(FirstFila2(&aptos) == 0)
-			if(DeleteAtIteratorFila2(&aptos) == 0)
-
-			setcontext(&exec->context);
+			if(DeleteAtIteratorFila2(&aptos) == 0)	
+				setcontext(&exec->context);
 		
 			else
 				printf("Nao conseguiu deletar a thread que vai executar da fila de aptos em dispatch\n");
@@ -154,9 +153,10 @@ int verifyCjoin(int tid, FILA2 queue){
 	TCB_t *threadInQueue = NULL;
 
 	while(GetAtIteratorFila2(&queue) != NULL){
-		
+				
 		threadInQueue = (TCB_t *) GetAtIteratorFila2(&queue);
 		if(threadInQueue->tid == tid){
+			printf("oi\n");
 			exec->tidCjoin = tid;	//indica o tid pela qual a thread que esta executando devera esperar
 			exec->state = PROCST_BLOQ;
 			
@@ -285,7 +285,6 @@ int ccreate (void *(*start) (void*), void *arg, int zero){
 		initDispatch();
 		initFimThread();
 		
-
 		//criando fila de aptos e bloqueados 
 
 		if(CreateFila2(&aptos) != 0){
@@ -332,6 +331,7 @@ int ccreate (void *(*start) (void*), void *arg, int zero){
 	}
 
 	nroTID++;
+	printf("retorno = %d\n", novaThread->tid);
 	
 	return novaThread->tid;
 
@@ -353,10 +353,10 @@ int cjoin(int tid){
 			return flagVerify;
 		}
 
-		printf("flagVerify = %d\n", flagVerify);
+		//printf("flagVerify = %d\n", flagVerify);
 
 		flagVerify = flagVerify && checkJoin(tid);
-		printf("flagVerify = %d\n", flagVerify);
+		//printf("flagVerify = %d\n", flagVerify);
 		
 		if(flagVerify == 0){
 
@@ -405,23 +405,36 @@ int cyield(){
 }
 
 int csem_init(csem_t *sem, int count){
+	
+	printf("Eu sou o csem_init\n");
 
-	//int var_teste;
 	sem->count = count;
 	sem->fila  = (FILA2 *)malloc(sizeof(FILA2));
-	CreateFila2(sem->fila);
+
+	
+	if (CreateFila2(sem->fila) != 0){
+		printf("Nao criou fila em csem_init\n");
+		return -1;
+	}
+
+	
 	return 0;
 
 }
 
 int cwait(csem_t *sem){
+
 	printf("Eu sou o cwait\n");
 	if(sem->count <= 0){
+
 		exec->state = PROCST_BLOQ;
-		if(AppendFila2(sem->fila, (void *) exec) != 0 || AppendFila2(&bloqueados, (void *) exec) != 0)
+		if(AppendFila2(sem->fila, (void *) exec) != 0){
+			printf("Nao colocou no fim de sem->fila em cwait\n");
 			return -1;
+		}	
 		swapcontext(&exec->context, &dispatch_ctx);
 	}
+
 	else{ 
 		sem->count--;
 		printf("cwait decrementou\n");
@@ -433,43 +446,24 @@ int cwait(csem_t *sem){
 
 int csignal(csem_t *sem){
 
-	//printf("Eu sou o csignal\n");
+	printf("Eu sou o csignal\n");
 	sem->count++;
-	//printf("csignal incrementou\n");
 
 	if(FirstFila2(sem->fila) == 0){
 		printf("Pegou o primeiro da fila do semaforo\n");
+		
 		TCB_t *t_des = (TCB_t *) GetAtIteratorFila2(sem->fila);
 		t_des->state = PROCST_APTO;
-		printf("fudeo 0\n");
-		AppendFila2(&aptos, (void *) t_des);
-		printf("colocou a thread da fila de blk do semaforo em aptos\n");
-		if(FirstFila2(&bloqueados) != 0){
-			return -1;
-		}
-		while(GetAtIteratorFila2(&bloqueados) != NULL){
-			printf("chegou no while da fila de bloqueados para deletar\n");
-			TCB_t *threadInQueue = (TCB_t *) GetAtIteratorFila2(&bloqueados);
-			if(threadInQueue->tid == t_des->tid){
-				DeleteAtIteratorFila2(&bloqueados);
-				printf("deletou da fila de bloqueados\n");
-			}
-			if(NextFila2(&bloqueados) != 0){
-				return -1;
-			}
-			printf("Setou pro proximo da fila\n"); 
-		}
+
+		changeState(&aptos, t_des);
+
+
 		if(DeleteAtIteratorFila2(sem->fila) != 0){
+			printf("Nao deletou da fila do semaforo em csignal\n");
 			return -1;
 		}
 	}
 	
-	//printf("pulou o if do csignal\n");
-	else{
-		printf("executou o else do csignal\n");
-		free(sem->fila);
-		sem->fila = NULL;
-	}
 	return 0;		  
 }
 

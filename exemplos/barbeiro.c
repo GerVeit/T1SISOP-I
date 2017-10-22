@@ -46,6 +46,7 @@ void cut_hair(void)
 
 void* barber(void* arg)
 {
+   printf("eu sou o barbeiro\n");
    while(time(NULL)<end_time || waiting > 0) {
      cwait(&customers);
      cwait(&mutex);
@@ -81,12 +82,15 @@ int main(int argc, char **argv)
 {
     int tidBarber, tidCustomer;
 
-    end_time=time(NULL)+120;  /*Barbearia fica aberta 120 s */
+    end_time=time(NULL)+1;  /*Barbearia fica aberta 120 s */
     srand((unsigned)time(NULL));
 
-    csem_init(&customers, 0);
-    csem_init(&barbers, 1);
-    csem_init(&mutex, 1);
+    if (csem_init(&customers, 0) != 0)
+	printf("erro no init\n");
+    if (csem_init(&barbers, 1) != 0)
+	printf("erro no init\n");
+    if (csem_init(&mutex, 1) != 0)
+	printf("erro no init\n");
 
     tidBarber = ccreate (barber, (void *) NULL, 0);
     if (tidBarber < 0 )

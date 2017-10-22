@@ -4,7 +4,7 @@ LIB_DIR=../lib
 FLAGS=-m32 -o
 LIB=-lcthread
 
-all: exemplo mandel series teste_vetor
+all: exemplo mandel series teste_vetor barbeiro filosofos
 
 exemplo:
 	$(CC) $(FLAGS) exemplo exemplo.c -L$(LIB_DIR) $(LIB)
@@ -17,6 +17,12 @@ series:
 
 teste_vetor:
 	$(CC) $(FLAGS) teste_vetor teste_vetor.c -L$(LIB_DIR) $(LIB)
+
+barbeiro:
+	$(CC) $(FLAGS) barbeiro barbeiro.c -L$(LIB_DIR) $(LIB)
+
+filosofos:
+	$(CC) $(FLAGS) filosofos filosofos.c -L$(LIB_DIR) $(LIB)
 
 clean:
 	find -type f ! -name '*.c' ! -name 'Makefile' -delete
